@@ -17,7 +17,7 @@ cd backend
 copy .env.example .env
 # update MONGO_URI and JWT_SECRET in .env
 npm install
-npm run dev
+npm run devGi
 ```
 
 ### 2) Frontend
