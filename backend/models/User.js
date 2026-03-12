@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
     quarterlyTarget: { type: Number, default: 0 },
     incentiveCTH: { type: Number, default: 0 },
     incentiveANN: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

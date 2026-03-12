@@ -1,19 +1,17 @@
 const IncentiveClaim = require("../models/IncentiveClaim");
 
-const hasDuplicateClaim = async ({ recruiterId, joinerId, incentiveType }) => {
+const hasDuplicateClaim = async ({ joinerId, incentiveType, claimDate = new Date() }) => {
   if (incentiveType === "ANN") {
-    const year = new Date().getFullYear().toString();
+    const year = new Date(claimDate).getFullYear().toString();
     const claim = await IncentiveClaim.findOne({
-      recruiterId,
       joinerId,
       incentiveType: "ANN",
-      monthPaid: new RegExp(`^${year}`),
+      claimMonth: new RegExp(`^${year}`),
     });
     return !!claim;
   }
 
   const claim = await IncentiveClaim.findOne({
-    recruiterId,
     joinerId,
     incentiveType: { $in: ["CTH", "FTE"] },
   });

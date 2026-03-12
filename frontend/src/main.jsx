@@ -7,6 +7,11 @@ import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 
+const storedTheme = localStorage.getItem("theme");
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+const shouldUseDark = storedTheme ? storedTheme === "dark" : prefersDark;
+document.documentElement.classList.toggle("dark", shouldUseDark);
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>

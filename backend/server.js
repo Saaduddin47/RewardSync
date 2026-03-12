@@ -13,6 +13,8 @@ const claimRoutes = require("./routes/claimRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const exportRoutes = require("./routes/exportRoutes");
+const reportRoutes = require("./routes/reportRoutes");
+const bgvRoutes = require("./routes/bgvRoutes");
 
 const app = express();
 
@@ -27,6 +29,8 @@ app.use("/api/claims", claimRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/export-report", exportRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/bgv", bgvRoutes);
 app.use(errorHandler);
 
 const PORT = Number(process.env.PORT) || 5001;

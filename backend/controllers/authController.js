@@ -10,6 +10,7 @@ const login = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  if (!user.isActive) return res.status(403).json({ message: "User account is disabled" });
 
   const valid = await user.comparePassword(password);
   if (!valid) return res.status(401).json({ message: "Invalid credentials" });

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import api from "../services/api";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -9,14 +10,25 @@ import DataTable from "../components/DataTable";
 import StatCard from "../components/StatCard";
 
 const ManagerDashboard = () => {
+  const location = useLocation();
   const [claims, setClaims] = useState([]);
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0 });
   const [statusFilter, setStatusFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const load = async () => {
-    const [claimsRes, statsRes] = await Promise.all([api.get("/claims"), api.get("/dashboard/manager")]);
-    setClaims(claimsRes.data);
-    setStats(statsRes.data);
+    setLoading(true);
+    setError("");
+    try {
+      const [claimsRes, statsRes] = await Promise.all([api.get("/claims"), api.get("/dashboard/manager")]);
+      setClaims(claimsRes.data);
+      setStats(statsRes.data);
+    } catch (e) {
+      setError(e?.response?.data?.message || "Failed to load manager dashboard");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -34,6 +46,12 @@ const ManagerDashboard = () => {
   };
 
   const filtered = statusFilter === "all" ? claims : claims.filter((c) => c.status === statusFilter);
+  const section = location.pathname.split("/")[2] || "dashboard";
+  const showDashboard = section === "dashboard";
+  const showClaims = section === "incentive-claims";
+  const showQueue = section === "approval-queue";
+  const showReports = section === "reports";
+  const queueRows = claims.filter((claim) => claim.status === "pending");
 
   const columns = useMemo(
     () => [
@@ -66,12 +84,33 @@ const ManagerDashboard = () => {
   );
 
   const exportReport = async () => {
-    const response = await api.get("/export-report", { responseType: "blob" });
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "incentive-report.xlsx";
-    a.click();
+    try {
+      const response = await api.get("/reports", { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "incentive-report.xlsx";
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Report exported");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Failed to export report");
+    }
+  };
+
+  const exportTrackerReport = async () => {
+    try {
+      const response = await api.get("/reports/incentive-tracker", { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "incentive-tracker.xlsx";
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Tracker report exported");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Failed to export tracker report");
+    }
   };
 
   return (
@@ -82,21 +121,55 @@ const ManagerDashboard = () => {
         <StatCard title="Rejected" value={stats.rejected} />
       </div>
 
-      <Card className="mt-6">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h3 className="font-semibold">Incentive Claims</h3>
-          <div className="flex items-center gap-2">
-            <select className="rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
-            <Button onClick={exportReport}>Export Excel</Button>
+      {(showDashboard || showClaims) && (
+        <Card className="mt-6">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h3 className="font-semibold">Incentive Claims</h3>
+            <div className="flex items-center gap-2">
+              <select className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <Button onClick={exportReport}>Export Excel</Button>
+              <Button variant="outline" onClick={exportTrackerReport}>Download Tracker</Button>
+            </div>
           </div>
-        </div>
-        <DataTable columns={columns} data={filtered} searchPlaceholder="Search claims..." />
-      </Card>
+          <DataTable
+            columns={columns}
+            data={filtered}
+            isLoading={loading}
+            error={error}
+            searchPlaceholder="Search claims..."
+            emptyMessage="No claims available"
+          />
+        </Card>
+      )}
+
+      {showQueue && (
+        <Card className="mt-6">
+          <h3 className="mb-3 font-semibold">Approval Queue</h3>
+          <DataTable
+            columns={columns}
+            data={queueRows}
+            isLoading={loading}
+            error={error}
+            searchPlaceholder="Search pending claims..."
+            emptyMessage="No pending approvals"
+          />
+        </Card>
+      )}
+
+      {showReports && (
+        <Card className="mt-6">
+          <h3 className="mb-3 font-semibold">Reports</h3>
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={exportReport}>Export Incentive Report</Button>
+            <Button variant="outline" onClick={exportTrackerReport}>Download Incentive Tracker</Button>
+          </div>
+        </Card>
+      )}
     </DashboardLayout>
   );
 };

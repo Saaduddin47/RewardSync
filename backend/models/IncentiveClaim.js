@@ -7,9 +7,10 @@ const incentiveClaimSchema = new mongoose.Schema(
     incentiveType: { type: String, enum: ["CTH", "FTE", "ANN"], required: true },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "approved", "rejected", "not_eligible"],
       default: "pending",
     },
+    claimMonth: { type: String, required: true },
     monthPaid: { type: String },
     incentiveAmount: { type: Number, default: 0 },
     managerNote: { type: String },

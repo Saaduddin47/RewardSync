@@ -7,24 +7,22 @@ const getTenureMonths = (joinDate) => {
   return Math.max(months, 0);
 };
 
-const checkEligibility = async ({ joiner, recruiterId }) => {
+const checkEligibility = async ({ joiner, claimDate = new Date() }) => {
   const tenureMonths = getTenureMonths(joiner.joinDate);
   const isAnnual = joiner.incentiveType === "ANN";
   const tenureEligible = isAnnual ? tenureMonths >= 12 : tenureMonths >= 3;
 
   let duplicate = false;
   if (isAnnual) {
-    const currentYear = new Date().getFullYear().toString();
+    const currentYear = new Date(claimDate).getFullYear().toString();
     duplicate = !!(await IncentiveClaim.findOne({
       joinerId: joiner._id,
-      recruiterId,
       incentiveType: "ANN",
-      monthPaid: new RegExp(`^${currentYear}`),
+      claimMonth: new RegExp(`^${currentYear}`),
     }));
   } else {
     duplicate = !!(await IncentiveClaim.findOne({
       joinerId: joiner._id,
-      recruiterId,
       incentiveType: { $in: ["CTH", "FTE"] },
     }));
   }

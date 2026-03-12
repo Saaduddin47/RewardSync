@@ -39,6 +39,56 @@ const getEmployees = async (req, res) => {
   return res.json(users);
 };
 
+const updateEmployee = async (req, res) => {
+  const { id } = req.params;
+  const allowedFields = [
+    "name",
+    "email",
+    "role",
+    "empId",
+    "doj",
+    "quarterlyTarget",
+    "incentiveCTH",
+    "incentiveANN",
+    "isActive",
+  ];
+
+  const payload = Object.fromEntries(
+    Object.entries(req.body || {}).filter(([key]) => allowedFields.includes(key))
+  );
+
+  if (Object.prototype.hasOwnProperty.call(payload, "password")) {
+    delete payload.password;
+  }
+
+  const employee = await User.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  }).select("-password");
+
+  if (!employee) {
+    return res.status(404).json({ message: "Employee not found" });
+  }
+
+  return res.json(employee);
+};
+
+const toggleEmployeeActive = async (req, res) => {
+  const { id } = req.params;
+  const employee = await User.findById(id);
+  if (!employee) {
+    return res.status(404).json({ message: "Employee not found" });
+  }
+
+  employee.isActive = !employee.isActive;
+  await employee.save();
+
+  return res.json({
+    id: employee._id,
+    isActive: employee.isActive,
+  });
+};
+
 const getRecovery = async (req, res) => {
   const rows = await Recovery.find()
     .populate("recruiterId", "name empId")
@@ -59,6 +109,8 @@ const upsertRecovery = async (req, res) => {
 module.exports = {
   createEmployee,
   getEmployees,
+  updateEmployee,
+  toggleEmployeeActive,
   getRecovery,
   upsertRecovery,
 };

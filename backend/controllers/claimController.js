@@ -16,7 +16,6 @@ const createClaim = async (req, res) => {
   }
 
   const duplicate = await hasDuplicateClaim({
-    recruiterId: req.user._id,
     joinerId,
     incentiveType: joiner.incentiveType,
   });
@@ -24,27 +23,37 @@ const createClaim = async (req, res) => {
     return res.status(400).json({ message: "Duplicate incentive claim is not allowed" });
   }
 
-  const eligibility = await checkEligibility({ joiner, recruiterId: req.user._id });
-  if (!eligibility.tenureEligible) {
-    return res.status(400).json({ message: "Joiner tenure not eligible yet" });
-  }
+  const eligibility = await checkEligibility({ joiner });
 
   const user = await User.findById(req.user._id);
   const amount = joiner.incentiveType === "ANN" ? user.incentiveANN : user.incentiveCTH;
 
   const now = new Date();
-  const monthPaid = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const claimMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
   const claim = await IncentiveClaim.create({
     joinerId,
     recruiterId: req.user._id,
     incentiveType: joiner.incentiveType,
-    status: "pending",
-    monthPaid,
+    status: eligibility.tenureEligible ? "pending" : "not_eligible",
+    claimMonth,
+    monthPaid: claimMonth,
     incentiveAmount: amount,
+    managerNote: eligibility.tenureEligible ? undefined : "Joiner tenure not eligible yet",
   });
 
-  return res.status(201).json(claim);
+  return res.status(201).json({
+    ...claim.toObject(),
+    eligibility,
+  });
+};
+
+const createClaimByBody = async (req, res) => {
+  req.params.joinerId = req.body?.joinerId;
+  if (!req.params.joinerId) {
+    return res.status(400).json({ message: "joinerId is required" });
+  }
+  return createClaim(req, res);
 };
 
 const getClaims = async (req, res) => {
@@ -98,7 +107,7 @@ const decideClaim = async (req, res) => {
     return res.json(claim);
   }
 
-  const eligibility = await checkEligibility({ joiner: claim.joinerId, recruiterId: claim.recruiterId._id });
+  const eligibility = await checkEligibility({ joiner: claim.joinerId });
   if (!eligibility.tenureEligible) {
     claim.status = "rejected";
     claim.managerNote = "Tenure not eligible";
@@ -120,8 +129,18 @@ const decideClaim = async (req, res) => {
   return res.json(claim);
 };
 
+const decideClaimByBody = async (req, res) => {
+  req.params.id = req.body?.claimId;
+  if (!req.params.id) {
+    return res.status(400).json({ message: "claimId is required" });
+  }
+  return decideClaim(req, res);
+};
+
 module.exports = {
   createClaim,
+  createClaimByBody,
   getClaims,
   decideClaim,
+  decideClaimByBody,
 };

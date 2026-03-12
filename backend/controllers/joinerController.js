@@ -62,6 +62,29 @@ const getBGVQueue = async (req, res) => {
   return res.json(queue);
 };
 
+const getAllBGVJoiners = async (req, res) => {
+  const bgvRecords = await BGV.find()
+    .populate({
+      path: "joinerId",
+      populate: { path: "recruiterId", select: "name empId" },
+    })
+    .sort({ updatedAt: -1 });
+
+  const rows = bgvRecords
+    .filter((record) => record.joinerId)
+    .map((record) => ({
+      id: record._id,
+      joinerId: record.joinerId._id,
+      joinerName: record.joinerId.joinerName,
+      recruiter: record.joinerId.recruiterId?.name,
+      client: record.joinerId.client,
+      joinDate: record.joinerId.joinDate,
+      bgvStatus: record.bgvStatus,
+    }));
+
+  return res.json(rows);
+};
+
 const updateBGV = async (req, res) => {
   const { id } = req.params;
   const { bgvStatus } = req.body;
@@ -76,9 +99,22 @@ const updateBGV = async (req, res) => {
   return res.json(record);
 };
 
+const updateBGVByBody = async (req, res) => {
+  const { joinerId, bgvStatus } = req.body || {};
+  if (!joinerId || !bgvStatus) {
+    return res.status(400).json({ message: "joinerId and bgvStatus are required" });
+  }
+
+  req.params.id = joinerId;
+  req.body = { bgvStatus };
+  return updateBGV(req, res);
+};
+
 module.exports = {
   createJoiner,
   getMyJoiners,
   getBGVQueue,
+  getAllBGVJoiners,
   updateBGV,
+  updateBGVByBody,
 };

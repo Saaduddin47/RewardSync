@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,9 +24,11 @@ const schema = z.object({
 });
 
 const RecruiterDashboard = () => {
+  const location = useLocation();
   const [stats, setStats] = useState(null);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm({
     resolver: zodResolver(schema),
@@ -34,13 +37,19 @@ const RecruiterDashboard = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [statsRes, joinersRes] = await Promise.all([
-      api.get("/dashboard/recruiter"),
-      api.get("/joiners/my"),
-    ]);
-    setStats(statsRes.data);
-    setRows(joinersRes.data);
-    setLoading(false);
+    setError("");
+    try {
+      const [statsRes, joinersRes] = await Promise.all([
+        api.get("/dashboard/recruiter"),
+        api.get("/joiners/my"),
+      ]);
+      setStats(statsRes.data);
+      setRows(joinersRes.data);
+    } catch (e) {
+      setError(e?.response?.data?.message || "Failed to load recruiter dashboard");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -67,6 +76,17 @@ const RecruiterDashboard = () => {
       toast.error(e?.response?.data?.message || "Claim failed");
     }
   };
+
+  const progress = stats?.quarterlyTarget
+    ? Math.min(100, Math.round(((stats.joinersSubmitted || 0) / stats.quarterlyTarget) * 100))
+    : 0;
+  const section = location.pathname.split("/")[2] || "dashboard";
+  const showDashboard = section === "dashboard";
+  const showSubmit = section === "submit-joiner";
+  const showMyClaims = section === "my-claims";
+  const showTargetProgress = section === "target-progress";
+
+  const claimedRows = rows.filter((row) => row.claimStatus !== "not_claimed");
 
   const columns = useMemo(
     () => [
@@ -97,45 +117,86 @@ const RecruiterDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="grid gap-4 md:grid-cols-3">
-        {loading || !stats ? (
-          <>
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-          </>
-        ) : (
-          <>
-            <StatCard title="Quarterly Target" value={stats.quarterlyTarget} />
-            <StatCard title="Joiners Submitted" value={stats.joinersSubmitted} />
-            <StatCard title="Current Deficit" value={stats.currentDeficit} />
-          </>
-        )}
-      </div>
+      {(showDashboard || showTargetProgress) && (
+        <div className="grid gap-4 md:grid-cols-4">
+          {loading || !stats ? (
+            <>
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+            </>
+          ) : (
+            <>
+              <StatCard title="Quarterly Target" value={stats.quarterlyTarget} />
+              <StatCard title="Joiners Submitted" value={stats.joinersSubmitted} />
+              <StatCard title="Current Deficit" value={stats.currentDeficit} />
+              <StatCard title="Target Progress" value={`${progress}%`} />
+            </>
+          )}
+        </div>
+      )}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
-          <h3 className="mb-3 font-semibold">Submit Joiner</h3>
-          <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
-            <Input placeholder="Joiner Name" {...register("joinerName")} />
-            <Input placeholder="Client" {...register("client")} />
-            <Input placeholder="Skill" {...register("skill")} />
-            <Input placeholder="Portal" {...register("portal")} />
-            <Input type="date" {...register("joinDate")} />
-            <select className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950" {...register("incentiveType")}>
-              <option value="CTH">CTH</option>
-              <option value="FTE">FTE</option>
-              <option value="ANN">ANN</option>
-            </select>
-            <Button className="w-full" disabled={isSubmitting}>Submit</Button>
-          </form>
-        </Card>
+      {(showDashboard || showSubmit) && (
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-1">
+            <h3 className="mb-3 font-semibold">Submit Joiner</h3>
+            <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+              <Input placeholder="Joiner Name" {...register("joinerName")} />
+              <Input placeholder="Client" {...register("client")} />
+              <Input placeholder="Skill" {...register("skill")} />
+              <Input placeholder="Portal" {...register("portal")} />
+              <Input type="date" {...register("joinDate")} />
+              <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" {...register("incentiveType")}>
+                <option value="CTH">CTH</option>
+                <option value="FTE">FTE</option>
+                <option value="ANN">ANN</option>
+              </select>
+              <Button className="w-full" disabled={isSubmitting}>Submit</Button>
+            </form>
+          </Card>
 
-        <Card className="lg:col-span-2">
-          <h3 className="mb-3 font-semibold">My Joiners</h3>
-          <DataTable columns={columns} data={rows} searchPlaceholder="Search joiners..." />
+          <Card className="lg:col-span-2">
+            <h3 className="mb-3 font-semibold">My Joiners</h3>
+            <DataTable
+              columns={columns}
+              data={rows}
+              isLoading={loading}
+              error={error}
+              searchPlaceholder="Search joiners..."
+              emptyMessage="No joiners submitted yet"
+            />
+          </Card>
+        </div>
+      )}
+
+      {showMyClaims && (
+        <Card className="mt-6">
+          <h3 className="mb-3 font-semibold">My Claims</h3>
+          <DataTable
+            columns={columns}
+            data={claimedRows}
+            isLoading={loading}
+            error={error}
+            searchPlaceholder="Search claims..."
+            emptyMessage="No claims found"
+          />
         </Card>
-      </div>
+      )}
+
+      {showTargetProgress && (
+        <Card className="mt-6">
+          <h3 className="mb-3 font-semibold">Target Progress Details</h3>
+          <DataTable
+            columns={columns}
+            data={rows}
+            isLoading={loading}
+            error={error}
+            searchPlaceholder="Search target records..."
+            emptyMessage="No target records"
+          />
+        </Card>
+      )}
     </DashboardLayout>
   );
 };

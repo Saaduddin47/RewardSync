@@ -5,7 +5,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        border: "hsl(240 5.9% 90%)",
+        border: "hsl(var(--border))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        card: "hsl(var(--card))",
       },
     },
   },
