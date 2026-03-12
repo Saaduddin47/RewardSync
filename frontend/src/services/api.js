@@ -1,8 +1,18 @@
 import axios from "axios";
 
 const resolveApiBaseUrl = () => {
-  const raw = (import.meta.env.VITE_API_URL || "https://rewardsync.onrender.com/api").trim();
-  return /\/api\/?$/i.test(raw) ? raw.replace(/\/$/, "") : `${raw.replace(/\/$/, "")}/api`;
+  const fallback = "https://rewardsync.onrender.com/api";
+  const raw = (import.meta.env.VITE_API_URL || fallback).trim();
+
+  try {
+    const parsed = new URL(raw);
+    const lowerPath = parsed.pathname.toLowerCase();
+    const apiIndex = lowerPath.indexOf("/api");
+    const normalizedPath = apiIndex >= 0 ? parsed.pathname.slice(0, apiIndex + 4) : "/api";
+    return `${parsed.origin}${normalizedPath}`.replace(/\/$/, "");
+  } catch (error) {
+    return fallback;
+  }
 };
 
 const api = axios.create({
