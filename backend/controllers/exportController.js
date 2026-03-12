@@ -38,7 +38,7 @@ const toMonthKey = (dateValue) => {
 const exportReport = async (req, res) => {
   const claims = await IncentiveClaim.find()
     .populate("recruiterId", "name empId doj")
-    .populate("joinerId", "client skill portal");
+    .populate("joinerId", "joinerName client skill portal");
 
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Incentive Report");
@@ -63,13 +63,13 @@ const exportReport = async (req, res) => {
       teamMemberName: claim.recruiterId?.name || "",
       incentiveType: claim.incentiveType,
       empId: claim.recruiterId?.empId || "",
-      empna: claim.recruiterId?.name || "",
+      empna: claim.joinerId?.joinerName || claim.joinerId?.name || "",
       empdoj: claim.recruiterId?.doj ? new Date(claim.recruiterId.doj).toISOString().slice(0, 10) : "",
       client: claim.joinerId?.client || "",
       skill: claim.joinerId?.skill || "",
       portal: claim.joinerId?.portal || "",
       bgv: bgv?.bgvStatus || "pending",
-      monthPaid: claim.claimMonth || claim.monthPaid || "",
+      monthPaid: claim.claimMonth || "",
       incentiveAmount: claim.incentiveAmount,
     });
   }
