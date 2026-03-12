@@ -18,14 +18,21 @@ const bgvRoutes = require("./routes/bgvRoutes");
 
 const app = express();
 
-const allowedOrigins = process.env.FRONTEND_URL
+const extraOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(",").map((o) => o.trim())
-  : ["http://localhost:5173", "http://localhost:5174"];
+  : [];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      // Allow requests with no origin (mobile apps, curl, Render health checks)
+      if (!origin) return callback(null, true);
+      // Always allow localhost dev
+      if (origin.startsWith("http://localhost")) return callback(null, true);
+      // Always allow any Vercel deployment (preview + production)
+      if (origin.endsWith(".vercel.app")) return callback(null, true);
+      // Allow any explicitly configured origins
+      if (extraOrigins.includes(origin)) return callback(null, true);
       callback(new Error(`CORS blocked: ${origin}`));
     },
     credentials: true,

@@ -72,11 +72,18 @@ const monthsAgo = (count) => {
 (async () => {
   await mongoose.connect(process.env.MONGO_URI || process.env.mongoURI);
 
+  // Clear all collections before re-seeding
+  await Promise.all([
+    User.deleteMany({}),
+    Joiner.deleteMany({}),
+    BGV.deleteMany({}),
+    IncentiveClaim.deleteMany({}),
+    Recovery.deleteMany({}),
+  ]);
+  console.log("Cleared existing data. Seeding...");
+
   for (const userData of seedUsers) {
-    const found = await User.findOne({ email: userData.email });
-    if (!found) {
-      await User.create({ ...userData, doj: monthsAgo(24) });
-    }
+    await User.create({ ...userData, doj: monthsAgo(24) });
   }
 
   const recruiters = await User.find({ role: "recruiter", email: { $in: ["recruiter@rewardsync.com", "recruiter2@rewardsync.com"] } })
