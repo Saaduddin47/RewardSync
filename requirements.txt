@@ -1,0 +1,91 @@
+# RewardSync – Project Requirements
+# ===================================
+# This project uses Node.js (backend) and React/Vite (frontend).
+# Dependencies are managed via npm. See backend/package.json and frontend/package.json.
+#
+# Runtime Requirements
+# ---------------------
+# Node.js     >= 18.x
+# npm         >= 9.x
+# MongoDB     >= 6.x (Atlas cloud or local)
+
+# ============================================================
+# BACKEND  (backend/)
+# Install: cd backend && npm install
+# ============================================================
+
+# Core
+express==4.19.2              # Web framework
+mongoose==8.6.2              # MongoDB ODM
+dotenv==16.4.5               # Environment variable loader
+cors==2.8.5                  # Cross-Origin Resource Sharing middleware
+morgan==1.10.0               # HTTP request logger
+
+# Auth
+bcryptjs==2.4.3              # Password hashing
+jsonwebtoken==9.0.2          # JWT authentication
+
+# Utilities
+express-async-errors==3.1.1  # Async error handling for Express
+exceljs==4.4.0               # Excel (.xlsx) generation for reports
+
+# Dev
+nodemon==3.1.4               # Auto-restart server on file changes (dev only)
+
+# ============================================================
+# FRONTEND  (frontend/)
+# Install: cd frontend && npm install
+# Build:   cd frontend && npm run build
+# ============================================================
+
+# Core
+react==18.3.1                # UI library
+react-dom==18.3.1            # DOM renderer
+react-router-dom==6.26.2     # Client-side routing
+
+# Data Fetching
+axios==1.7.7                 # HTTP client
+
+# Forms & Validation
+react-hook-form==7.53.0      # Form state management
+@hookform/resolvers==3.9.0   # Zod resolver for react-hook-form
+zod==3.23.8                  # Schema validation
+
+# Tables
+@tanstack/react-table==8.20.5  # Headless table with sorting/pagination
+
+# State
+zustand==4.5.5               # Lightweight global state management
+
+# UI / Styling
+tailwindcss==3.4.13          # Utility-first CSS framework
+tailwind-merge==2.5.2        # Merge conflicting Tailwind classes
+class-variance-authority==0.7.0  # Component variant utility
+clsx==2.1.1                  # Conditional className utility
+lucide-react==0.441.0        # Icon library
+sonner==1.5.0                # Toast notifications
+
+# Build Tools (dev)
+vite==5.4.3                  # Build tool and dev server
+@vitejs/plugin-react==4.3.1  # React plugin for Vite
+postcss==8.4.47              # CSS post-processor
+autoprefixer==10.4.20        # CSS vendor prefix automation
+
+# ============================================================
+# ENVIRONMENT VARIABLES
+# ============================================================
+# Backend (.env):
+#   PORT=5001
+#   MONGO_URI=<MongoDB Atlas connection string>
+#   JWT_SECRET=<random secret>
+#   JWT_EXPIRES_IN=7d
+#   FRONTEND_URL=https://your-app.vercel.app   (optional, CORS whitelist)
+#
+# Frontend (.env):
+#   VITE_API_URL=https://your-backend.onrender.com/api
+
+# ============================================================
+# DEPLOYMENT
+# ============================================================
+# Backend  → Render  (root: backend/, start: node server.js)
+# Frontend → Vercel  (root: frontend/, build: npm run build, output: dist)
