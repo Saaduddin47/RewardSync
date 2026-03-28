@@ -1,7 +1,6 @@
 const Joiner = require("../models/Joiner");
 const BGV = require("../models/BGV");
 const IncentiveClaim = require("../models/IncentiveClaim");
-const { checkEligibility } = require("../services/eligibilityService");
 
 const createJoiner = async (req, res) => {
   const incomingJoinerId = String(req.body?.joinerId || "").trim();
@@ -36,13 +35,15 @@ const getMyJoiners = async (req, res) => {
     joiners.map(async (joiner) => {
       const bgv = await BGV.findOne({ joinerId: joiner._id });
       const latestClaim = await IncentiveClaim.findOne({ joinerId: joiner._id, recruiterId: req.user._id }).sort({ createdAt: -1 });
-      const eligibility = await checkEligibility({ joiner, recruiterId: req.user._id });
 
       return {
         ...joiner.toObject(),
         bgvStatus: bgv?.bgvStatus || "pending",
         claimStatus: latestClaim?.status || "not_claimed",
-        eligibility,
+        rejectionReason:
+          latestClaim && ["rejected", "not_eligible"].includes(latestClaim.status)
+            ? (latestClaim.managerNote || "—")
+            : "—",
       };
     })
   );

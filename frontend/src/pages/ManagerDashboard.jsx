@@ -81,6 +81,15 @@ const ManagerDashboard = () => {
       },
       { accessorKey: "status", header: "Final Status", cell: ({ row }) => <Badge status={row.original.status} /> },
       {
+        header: "Rejection Reason",
+        cell: ({ row }) => {
+          if (["rejected", "not_eligible"].includes(row.original.status)) {
+            return row.original.managerNote || "—";
+          }
+          return "—";
+        },
+      },
+      {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">

@@ -16,21 +16,29 @@ const getOrCreateRecovery = async (recruiterId) => {
 };
 
 const applyRecoveryRule = async (recruiterId) => {
-  const record = await getOrCreateRecovery(recruiterId);
-  if (record.deficit > 0) {
-    record.deficit -= 1;
-    await record.save();
+  const baseRecord = await getOrCreateRecovery(recruiterId);
+
+  const decrementedRecord = await Recovery.findOneAndUpdate(
+    {
+      _id: baseRecord._id,
+      deficit: { $gt: 0 },
+    },
+    { $inc: { deficit: -1 } },
+    { new: true }
+  );
+
+  if (decrementedRecord) {
     return {
       approved: false,
       reason: "Recovery deficit active. Claim auto-rejected and deficit decremented.",
-      deficit: record.deficit,
+      deficit: decrementedRecord.deficit,
     };
   }
 
   return {
     approved: true,
     reason: "No recovery deficit",
-    deficit: record.deficit,
+    deficit: baseRecord.deficit,
   };
 };
 

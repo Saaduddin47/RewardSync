@@ -38,7 +38,7 @@ const toMonthKey = (dateValue) => {
 const exportReport = async (req, res) => {
   const claims = await IncentiveClaim.find()
     .populate("recruiterId", "name empId doj")
-    .populate("joinerId", "joinerName client skill portal");
+    .populate("joinerId", "joinerId joinerName joinDate client skill portal");
 
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Incentive Report");
@@ -46,9 +46,12 @@ const exportReport = async (req, res) => {
   sheet.columns = [
     { header: "Team Member Name", key: "teamMemberName", width: 24 },
     { header: "Incentive Type", key: "incentiveType", width: 16 },
+    { header: "Claim Status", key: "claimStatus", width: 16 },
+    { header: "Rejection Reason", key: "rejectionReason", width: 40 },
     { header: "EMP ID", key: "empId", width: 12 },
+    { header: "Joiner ID", key: "joinerId", width: 16 },
     { header: "EMPNA", key: "empna", width: 20 },
-    { header: "EMPDOJ", key: "empdoj", width: 16 },
+    { header: "DOJ", key: "empdoj", width: 16 },
     { header: "Client", key: "client", width: 18 },
     { header: "Skill", key: "skill", width: 16 },
     { header: "Portal", key: "portal", width: 16 },
@@ -62,9 +65,12 @@ const exportReport = async (req, res) => {
     sheet.addRow({
       teamMemberName: claim.recruiterId?.name || "",
       incentiveType: claim.incentiveType,
+      claimStatus: claim.status,
+      rejectionReason: ["rejected", "not_eligible"].includes(claim.status) ? (claim.managerNote || "") : "",
       empId: claim.recruiterId?.empId || "",
+      joinerId: claim.joinerId?.joinerId || "",
       empna: claim.joinerId?.joinerName || claim.joinerId?.name || "",
-      empdoj: claim.recruiterId?.doj ? new Date(claim.recruiterId.doj).toISOString().slice(0, 10) : "",
+      empdoj: claim.joinerId?.joinDate ? new Date(claim.joinerId.joinDate).toISOString().slice(0, 10) : "",
       client: claim.joinerId?.client || "",
       skill: claim.joinerId?.skill || "",
       portal: claim.joinerId?.portal || "",

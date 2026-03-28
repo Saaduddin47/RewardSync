@@ -110,18 +110,24 @@ const RecruiterDashboard = () => {
       { accessorKey: "client", header: "Client" },
       { accessorKey: "incentiveType", header: "Type" },
       { accessorKey: "bgvStatus", header: "BGV", cell: ({ row }) => <Badge status={row.original.bgvStatus} /> },
-      {
-        header: "Eligibility",
-        cell: ({ row }) => <Badge status={row.original.eligibility?.eligible ? "approved" : "pending"} />,
-      },
       { accessorKey: "claimStatus", header: "Claim Status", cell: ({ row }) => <Badge status={row.original.claimStatus} /> },
+      {
+        header: "Rejection Reason",
+        cell: ({ row }) => {
+          const status = row.original.claimStatus;
+          if (status === "rejected" || status === "not_eligible") {
+            return row.original.rejectionReason || "—";
+          }
+          return "—";
+        },
+      },
       {
         header: "Action",
         cell: ({ row }) => (
           <div className="space-y-1">
             <Button
               variant="outline"
-              disabled={!row.original.eligibility?.eligible || row.original.claimStatus !== "not_claimed"}
+              disabled={row.original.claimStatus !== "not_claimed"}
               onClick={() => claim(row.original._id)}
             >
               Claim
@@ -135,6 +141,8 @@ const RecruiterDashboard = () => {
     ],
     [claimErrors]
   );
+
+  const claimsColumns = columns;
 
   return (
     <DashboardLayout>
@@ -198,7 +206,7 @@ const RecruiterDashboard = () => {
         <Card className="mt-6">
           <h3 className="mb-3 font-semibold">My Claims</h3>
           <DataTable
-            columns={columns}
+            columns={claimsColumns}
             data={claimedRows}
             isLoading={loading}
             error={error}

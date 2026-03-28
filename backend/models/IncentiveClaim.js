@@ -13,7 +13,13 @@ const incentiveClaimSchema = new mongoose.Schema(
     claimMonth: { type: String, required: true },
     monthPaid: { type: String },
     incentiveAmount: { type: Number, default: 0 },
-    managerNote: { type: String },
+    managerNote: {
+      type: String,
+      trim: true,
+      required: function requireReasonForRejections() {
+        return ["rejected", "not_eligible"].includes(this.status);
+      },
+    },
   },
   { timestamps: true }
 );
