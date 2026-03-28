@@ -76,7 +76,7 @@ const exportReport = async (req, res) => {
       portal: claim.joinerId?.portal || "",
       bgv: bgv?.bgvStatus || "pending",
       monthPaid: claim.claimMonth || "",
-      incentiveAmount: claim.incentiveAmount,
+      incentiveAmount: claim.status === "approved" ? claim.incentiveAmount : "",
     });
   }
 
