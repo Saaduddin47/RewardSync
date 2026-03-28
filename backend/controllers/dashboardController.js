@@ -5,14 +5,23 @@ const User = require("../models/User");
 const { getCurrentQuarter } = require("../services/recoveryService");
 
 const recruiterStats = async (req, res) => {
-  const quarter = getCurrentQuarter();
-  const joinersCount = await Joiner.countDocuments({ recruiterId: req.user._id });
-  const recovery = await Recovery.findOne({ recruiterId: req.user._id, quarter });
+  const now = new Date();
+  const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+  const quarterStart = new Date(now.getFullYear(), quarterStartMonth, 1, 0, 0, 0, 0);
+  const quarterEnd = new Date(now.getFullYear(), quarterStartMonth + 3, 1, 0, 0, 0, 0);
+
+  const joinersCount = await Joiner.countDocuments({
+    recruiterId: req.user._id,
+    createdAt: { $gte: quarterStart, $lt: quarterEnd },
+  });
+
+  const quarterlyTarget = req.user.quarterlyTarget || 0;
+  const currentDeficit = quarterlyTarget - joinersCount;
 
   return res.json({
-    quarterlyTarget: req.user.quarterlyTarget || 0,
+    quarterlyTarget,
     joinersSubmitted: joinersCount,
-    currentDeficit: recovery?.deficit || 0,
+    currentDeficit,
   });
 };
 
