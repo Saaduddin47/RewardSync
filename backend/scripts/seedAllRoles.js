@@ -94,21 +94,21 @@ const monthsAgo = (count) => {
   const bgvUser = await User.findOne({ role: "bgv", email: "bgv@rewardsync.com" }).select("_id").lean();
 
   const joinerSeed = [
-    { joinerName: "Aarav Shah", client: "Acme", skill: "Java", portal: "Naukri", incentiveType: "CTH", recruiter: "Riya Recruiter", joinDate: monthsAgo(14), bgvStatus: "cleared" },
-    { joinerName: "Neha Iyer", client: "Acme", skill: "React", portal: "LinkedIn", incentiveType: "FTE", recruiter: "Riya Recruiter", joinDate: monthsAgo(11), bgvStatus: "cleared" },
-    { joinerName: "Kabir Khan", client: "Globex", skill: "Node", portal: "Referral", incentiveType: "CTH", recruiter: "Riya Recruiter", joinDate: monthsAgo(8), bgvStatus: "pending" },
-    { joinerName: "Ananya Rao", client: "Initech", skill: "Python", portal: "LinkedIn", incentiveType: "ANN", recruiter: "Riya Recruiter", joinDate: monthsAgo(13), bgvStatus: "cleared" },
-    { joinerName: "Dev Mehta", client: "Hooli", skill: "DevOps", portal: "Naukri", incentiveType: "CTH", recruiter: "Riya Recruiter", joinDate: monthsAgo(2), bgvStatus: "failed" },
-    { joinerName: "Ishita Sen", client: "Acme", skill: "QA", portal: "Referral", incentiveType: "FTE", recruiter: "Riya Recruiter", joinDate: monthsAgo(5), bgvStatus: "cleared" },
-    { joinerName: "Rohan Das", client: "Globex", skill: "Java", portal: "Naukri", incentiveType: "CTH", recruiter: "Riya Recruiter", joinDate: monthsAgo(4), bgvStatus: "pending" },
-    { joinerName: "Pooja Jain", client: "Initech", skill: "React", portal: "LinkedIn", incentiveType: "ANN", recruiter: "Riya Recruiter", joinDate: monthsAgo(15), bgvStatus: "cleared" },
-    { joinerName: "Sahil Gupta", client: "Hooli", skill: "Data", portal: "Referral", incentiveType: "CTH", recruiter: "Arjun Recruiter", joinDate: monthsAgo(10), bgvStatus: "cleared" },
-    { joinerName: "Mira Nair", client: "Acme", skill: "Java", portal: "Naukri", incentiveType: "FTE", recruiter: "Arjun Recruiter", joinDate: monthsAgo(7), bgvStatus: "cleared" },
-    { joinerName: "Yash Verma", client: "Globex", skill: "Python", portal: "LinkedIn", incentiveType: "CTH", recruiter: "Arjun Recruiter", joinDate: monthsAgo(6), bgvStatus: "pending" },
-    { joinerName: "Nikita Paul", client: "Initech", skill: "Node", portal: "Referral", incentiveType: "ANN", recruiter: "Arjun Recruiter", joinDate: monthsAgo(16), bgvStatus: "cleared" },
-    { joinerName: "Aditya Kulkarni", client: "Hooli", skill: "QA", portal: "Naukri", incentiveType: "FTE", recruiter: "Arjun Recruiter", joinDate: monthsAgo(3), bgvStatus: "failed" },
-    { joinerName: "Ritika Bose", client: "Acme", skill: "React", portal: "LinkedIn", incentiveType: "CTH", recruiter: "Arjun Recruiter", joinDate: monthsAgo(1), bgvStatus: "pending" },
-    { joinerName: "Farhan Ali", client: "Globex", skill: "DevOps", portal: "Referral", incentiveType: "ANN", recruiter: "Arjun Recruiter", joinDate: monthsAgo(12), bgvStatus: "cleared" },
+    { joinerId: "JNR-1001", joinerName: "Aarav Shah", client: "Acme", skill: "Java", portal: "Naukri", incentiveType: "CTH", recruiter: "Riya Recruiter", joinDate: monthsAgo(14), bgvStatus: "cleared" },
+    { joinerId: "JNR-1002", joinerName: "Neha Iyer", client: "Acme", skill: "React", portal: "LinkedIn", incentiveType: "FTE", recruiter: "Riya Recruiter", joinDate: monthsAgo(11), bgvStatus: "cleared" },
+    { joinerId: "JNR-1003", joinerName: "Kabir Khan", client: "Globex", skill: "Node", portal: "Referral", incentiveType: "CTH", recruiter: "Riya Recruiter", joinDate: monthsAgo(8), bgvStatus: "pending" },
+    { joinerId: "JNR-1004", joinerName: "Ananya Rao", client: "Initech", skill: "Python", portal: "LinkedIn", incentiveType: "ANN", recruiter: "Riya Recruiter", joinDate: monthsAgo(13), bgvStatus: "cleared" },
+    { joinerId: "JNR-1005", joinerName: "Dev Mehta", client: "Hooli", skill: "DevOps", portal: "Naukri", incentiveType: "CTH", recruiter: "Riya Recruiter", joinDate: monthsAgo(2), bgvStatus: "failed" },
+    { joinerId: "JNR-1006", joinerName: "Ishita Sen", client: "Acme", skill: "QA", portal: "Referral", incentiveType: "FTE", recruiter: "Riya Recruiter", joinDate: monthsAgo(5), bgvStatus: "cleared" },
+    { joinerId: "JNR-1007", joinerName: "Rohan Das", client: "Globex", skill: "Java", portal: "Naukri", incentiveType: "CTH", recruiter: "Riya Recruiter", joinDate: monthsAgo(4), bgvStatus: "pending" },
+    { joinerId: "JNR-1008", joinerName: "Pooja Jain", client: "Initech", skill: "React", portal: "LinkedIn", incentiveType: "ANN", recruiter: "Riya Recruiter", joinDate: monthsAgo(15), bgvStatus: "cleared" },
+    { joinerId: "JNR-1009", joinerName: "Sahil Gupta", client: "Hooli", skill: "Data", portal: "Referral", incentiveType: "CTH", recruiter: "Arjun Recruiter", joinDate: monthsAgo(10), bgvStatus: "cleared" },
+    { joinerId: "JNR-1010", joinerName: "Mira Nair", client: "Acme", skill: "Java", portal: "Naukri", incentiveType: "FTE", recruiter: "Arjun Recruiter", joinDate: monthsAgo(7), bgvStatus: "cleared" },
+    { joinerId: "JNR-1011", joinerName: "Yash Verma", client: "Globex", skill: "Python", portal: "LinkedIn", incentiveType: "CTH", recruiter: "Arjun Recruiter", joinDate: monthsAgo(6), bgvStatus: "pending" },
+    { joinerId: "JNR-1012", joinerName: "Nikita Paul", client: "Initech", skill: "Node", portal: "Referral", incentiveType: "ANN", recruiter: "Arjun Recruiter", joinDate: monthsAgo(16), bgvStatus: "cleared" },
+    { joinerId: "JNR-1013", joinerName: "Aditya Kulkarni", client: "Hooli", skill: "QA", portal: "Naukri", incentiveType: "FTE", recruiter: "Arjun Recruiter", joinDate: monthsAgo(3), bgvStatus: "failed" },
+    { joinerId: "JNR-1014", joinerName: "Ritika Bose", client: "Acme", skill: "React", portal: "LinkedIn", incentiveType: "CTH", recruiter: "Arjun Recruiter", joinDate: monthsAgo(1), bgvStatus: "pending" },
+    { joinerId: "JNR-1015", joinerName: "Farhan Ali", client: "Globex", skill: "DevOps", portal: "Referral", incentiveType: "ANN", recruiter: "Arjun Recruiter", joinDate: monthsAgo(12), bgvStatus: "cleared" },
   ];
 
   const recruiterIds = recruiters.map((item) => item._id);
@@ -123,6 +123,7 @@ const monthsAgo = (count) => {
 
     const joiner = await Joiner.create({
       recruiterId,
+      joinerId: row.joinerId,
       joinerName: row.joinerName,
       client: row.client,
       skill: row.skill,

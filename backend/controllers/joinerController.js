@@ -4,8 +4,19 @@ const IncentiveClaim = require("../models/IncentiveClaim");
 const { checkEligibility } = require("../services/eligibilityService");
 
 const createJoiner = async (req, res) => {
+  const incomingJoinerId = String(req.body?.joinerId || "").trim();
+  if (!incomingJoinerId) {
+    return res.status(400).json({ message: "joinerId is required" });
+  }
+
+  const existingJoiner = await Joiner.findOne({ joinerId: incomingJoinerId });
+  if (existingJoiner) {
+    return res.status(400).json({ message: "JoinerID already exists" });
+  }
+
   const joiner = await Joiner.create({
     ...req.body,
+    joinerId: incomingJoinerId,
     recruiterId: req.user._id,
   });
 
@@ -51,7 +62,8 @@ const getBGVQueue = async (req, res) => {
     .filter((record) => record.joinerId)
     .map((record) => ({
       id: record._id,
-      joinerId: record.joinerId._id,
+      joinerObjectId: record.joinerId._id,
+      joinerId: record.joinerId.joinerId,
       joinerName: record.joinerId.joinerName,
       recruiter: record.joinerId.recruiterId?.name,
       client: record.joinerId.client,
@@ -74,7 +86,8 @@ const getAllBGVJoiners = async (req, res) => {
     .filter((record) => record.joinerId)
     .map((record) => ({
       id: record._id,
-      joinerId: record.joinerId._id,
+      joinerObjectId: record.joinerId._id,
+      joinerId: record.joinerId.joinerId,
       joinerName: record.joinerId.joinerName,
       recruiter: record.joinerId.recruiterId?.name,
       client: record.joinerId.client,

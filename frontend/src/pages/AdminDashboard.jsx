@@ -29,6 +29,7 @@ const AdminDashboard = () => {
   const location = useLocation();
   const [employees, setEmployees] = useState([]);
   const [recoveryRows, setRecoveryRows] = useState([]);
+  const [claims, setClaims] = useState([]);
   const [recruiterFilter, setRecruiterFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,9 +44,14 @@ const AdminDashboard = () => {
     setLoading(true);
     setError("");
     try {
-      const [employeesRes, recoveryRes] = await Promise.all([api.get("/admin/employees"), api.get("/admin/recovery")]);
+      const [employeesRes, recoveryRes, claimsRes] = await Promise.all([
+        api.get("/admin/employees"),
+        api.get("/admin/recovery"),
+        api.get("/claims"),
+      ]);
       setEmployees(employeesRes.data);
       setRecoveryRows(recoveryRes.data);
+      setClaims(claimsRes.data);
       const initialDrafts = Object.fromEntries(
         employeesRes.data.map((employee) => [
           employee._id,
@@ -313,6 +319,24 @@ const AdminDashboard = () => {
     [employeeDrafts]
   );
 
+  const claimsColumns = useMemo(
+    () => [
+      { header: "Joiner ID", cell: ({ row }) => row.original.joinerId?.joinerId || "-" },
+      { header: "Joiner Name", cell: ({ row }) => row.original.joinerId?.joinerName || "-" },
+      {
+        header: "Date of Joining",
+        cell: ({ row }) => {
+          const joinDate = row.original.joinerId?.joinDate;
+          return joinDate ? new Date(joinDate).toLocaleDateString() : "-";
+        },
+      },
+      { header: "Recruiter", cell: ({ row }) => row.original.recruiterId?.name || "-" },
+      { accessorKey: "incentiveType", header: "Type" },
+      { accessorKey: "status", header: "Status", cell: ({ row }) => <Badge status={row.original.status} /> },
+    ],
+    []
+  );
+
   return (
     <DashboardLayout>
       <div className="grid gap-4 md:grid-cols-4">
@@ -388,6 +412,20 @@ const AdminDashboard = () => {
             error={error}
             searchPlaceholder="Search employees..."
             emptyMessage="No employees found"
+          />
+        </Card>
+      )}
+
+      {showDashboard && (
+        <Card className="mt-6">
+          <h3 className="mb-3 font-semibold">Claims Overview</h3>
+          <DataTable
+            columns={claimsColumns}
+            data={claims}
+            isLoading={loading}
+            error={error}
+            searchPlaceholder="Search claims..."
+            emptyMessage="No claims found"
           />
         </Card>
       )}

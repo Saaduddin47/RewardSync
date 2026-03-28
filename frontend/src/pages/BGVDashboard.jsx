@@ -45,6 +45,7 @@ const BGVDashboard = () => {
 
   const columns = useMemo(
     () => [
+      { accessorKey: "joinerId", header: "Joiner ID" },
       { accessorKey: "joinerName", header: "Joiner Name" },
       { accessorKey: "recruiter", header: "Recruiter" },
       { accessorKey: "client", header: "Client" },
@@ -58,8 +59,8 @@ const BGVDashboard = () => {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => updateStatus(row.original.joinerId, "cleared")}>Mark Cleared</Button>
-            <Button variant="danger" onClick={() => updateStatus(row.original.joinerId, "failed")}>Mark Failed</Button>
+            <Button variant="outline" onClick={() => updateStatus(row.original.joinerObjectId, "cleared")}>Mark Cleared</Button>
+            <Button variant="danger" onClick={() => updateStatus(row.original.joinerObjectId, "failed")}>Mark Failed</Button>
           </div>
         ),
       },

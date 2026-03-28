@@ -2,7 +2,7 @@ const Joiner = require("../models/Joiner");
 const User = require("../models/User");
 const BGV = require("../models/BGV");
 const IncentiveClaim = require("../models/IncentiveClaim");
-const { hasDuplicateClaim } = require("../services/duplicateClaimService");
+const { checkDuplicateClaimRule } = require("../services/duplicateClaimService");
 const { checkEligibility, getTenureMonths } = require("../services/eligibilityService");
 const { applyRecoveryRule, getOrCreateRecovery } = require("../services/recoveryService");
 
@@ -15,12 +15,12 @@ const createClaim = async (req, res) => {
     return res.status(403).json({ message: "Not allowed" });
   }
 
-  const duplicate = await hasDuplicateClaim({
-    joinerId,
+  const duplicateCheck = await checkDuplicateClaimRule({
+    joinerBusinessId: joiner.joinerId,
     incentiveType: joiner.incentiveType,
   });
-  if (duplicate) {
-    return res.status(400).json({ message: "Duplicate incentive claim is not allowed" });
+  if (duplicateCheck.blocked) {
+    return res.status(400).json({ message: duplicateCheck.reason });
   }
 
   const eligibility = await checkEligibility({ joiner });
@@ -60,7 +60,7 @@ const getClaims = async (req, res) => {
   const query = req.user.role === "recruiter" ? { recruiterId: req.user._id } : {};
   const claims = await IncentiveClaim.find(query)
     .populate({ path: "recruiterId", select: "name empId" })
-    .populate({ path: "joinerId", select: "joinerName client joinDate incentiveType skill portal" })
+    .populate({ path: "joinerId", select: "joinerId joinerName client joinDate incentiveType skill portal" })
     .sort({ createdAt: -1 });
 
   const enriched = await Promise.all(

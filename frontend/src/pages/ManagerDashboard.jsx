@@ -56,7 +56,15 @@ const ManagerDashboard = () => {
   const columns = useMemo(
     () => [
       { header: "Recruiter", cell: ({ row }) => row.original.recruiterId?.name },
+      { header: "Joiner ID", cell: ({ row }) => row.original.joinerId?.joinerId || "-" },
       { header: "Joiner", cell: ({ row }) => row.original.joinerId?.joinerName },
+      {
+        header: "Date of Joining",
+        cell: ({ row }) => {
+          const joinDate = row.original.joinerId?.joinDate;
+          return joinDate ? new Date(joinDate).toLocaleDateString() : "-";
+        },
+      },
       { header: "Client", cell: ({ row }) => row.original.joinerId?.client },
       { accessorKey: "incentiveType", header: "Incentive Type" },
       { header: "BGV", cell: ({ row }) => <Badge status={row.original.bgvStatus} /> },
