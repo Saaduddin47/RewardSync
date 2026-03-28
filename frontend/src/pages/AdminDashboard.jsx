@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import api, { fetchAdminDashboardData } from "../services/api";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { Card } from "../components/ui/card";
@@ -18,12 +19,33 @@ const schema = z.object({
   email: z.string().email(),
   role: z.enum(["recruiter", "bgv", "manager"]),
   empId: z.string().min(2),
-  doj: z.string().min(1),
-  quarterlyTarget: z.coerce.number().min(0),
-  incentiveCTH: z.coerce.number().min(0),
-  incentiveANN: z.coerce.number().min(0),
+  doj: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/),
+  quarterlyTarget: z.coerce.number().min(0).optional(),
+  incentiveCTH: z.coerce.number().min(0).optional(),
+  incentiveANN: z.coerce.number().min(0).optional(),
   password: z.string().min(6),
 });
+
+const parseDmyToIso = (value) => {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(value || "").trim());
+  if (!match) return null;
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  const parsed = new Date(year, month - 1, day);
+
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+};
 
 const AdminDashboard = () => {
   const location = useLocation();
@@ -34,11 +56,15 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [employeeDrafts, setEmployeeDrafts] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm({
+  const { register, handleSubmit, reset, watch, formState: { isSubmitting } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { role: "recruiter", quarterlyTarget: 10, incentiveCTH: 0, incentiveANN: 0, password: "Pass@123" },
+    defaultValues: { role: "recruiter", quarterlyTarget: 10, incentiveCTH: 0, incentiveANN: 0, password: "Pass@123", doj: "" },
+    shouldUnregister: true,
   });
+
+  const selectedCreateRole = watch("role");
 
   const load = async () => {
     setLoading(true);
@@ -77,9 +103,30 @@ const AdminDashboard = () => {
 
   const onSubmit = async (values) => {
     try {
-      await api.post("/admin/employees", values);
+      const parsedDoj = parseDmyToIso(values.doj);
+      if (!parsedDoj) {
+        toast.error("Date of Joining must be in dd/mm/yyyy format");
+        return;
+      }
+
+      const payload = {
+        name: values.name,
+        email: values.email,
+        role: values.role,
+        empId: values.empId,
+        doj: parsedDoj,
+        password: values.password,
+      };
+
+      if (values.role === "recruiter") {
+        payload.quarterlyTarget = Number(values.quarterlyTarget || 0);
+        payload.incentiveCTH = Number(values.incentiveCTH || 0);
+        payload.incentiveANN = Number(values.incentiveANN || 0);
+      }
+
+      await api.post("/admin/employees", payload);
       toast.success("Employee created");
-      reset({ role: "recruiter", quarterlyTarget: 10, incentiveCTH: 0, incentiveANN: 0, password: "Pass@123" });
+      reset({ role: "recruiter", quarterlyTarget: 10, incentiveCTH: 0, incentiveANN: 0, password: "Pass@123", doj: "" });
       await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || "Failed to create employee");
@@ -356,11 +403,25 @@ const AdminDashboard = () => {
                   <option value="manager">Manager</option>
                 </select>
                 <Input placeholder="Emp ID" {...register("empId")} />
-                <Input type="date" {...register("doj")} />
-                <Input type="number" placeholder="Quarterly Target" {...register("quarterlyTarget")} />
-                <Input type="number" placeholder="CTH Incentive Amount" {...register("incentiveCTH")} />
-                <Input type="number" placeholder="ANN Incentive Amount" {...register("incentiveANN")} />
-                <Input type="password" placeholder="Password" {...register("password")} />
+                <Input type="text" placeholder="dd/mm/yyyy" {...register("doj")} />
+                {selectedCreateRole === "recruiter" && (
+                  <>
+                    <Input type="number" placeholder="Quarterly Target" {...register("quarterlyTarget")} />
+                    <Input type="number" placeholder="CTH Incentive Amount" {...register("incentiveCTH")} />
+                    <Input type="number" placeholder="ANN Incentive Amount" {...register("incentiveANN")} />
+                  </>
+                )}
+                <div className="relative">
+                  <Input type={showPassword ? "text" : "password"} placeholder="Password" className="pr-10" {...register("password")} />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-2 inline-flex items-center text-foreground/60"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 <Button className="w-full" disabled={isSubmitting}>Create Employee</Button>
               </form>
             </Card>
