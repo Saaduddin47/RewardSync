@@ -88,7 +88,10 @@ const DataTable = ({
             {isLoading ? (
               <tr>
                 <td className="px-4 py-6 text-sm text-foreground/70" colSpan={columns.length || 1}>
-                  Loading...
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-foreground/30 border-t-foreground/70" />
+                    <span>Refreshing...</span>
+                  </div>
                 </td>
               </tr>
             ) : error ? (

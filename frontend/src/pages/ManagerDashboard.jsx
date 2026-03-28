@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import api from "../services/api";
+import api, { fetchManagerDashboardData } from "../services/api";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -22,14 +22,10 @@ const ManagerDashboard = () => {
     setLoading(true);
     setError("");
     try {
-      const [claimsRes, statsRes, deficitsRes] = await Promise.all([
-        api.get("/claims"),
-        api.get("/dashboard/manager"),
-        api.get("/dashboard/deficits"),
-      ]);
-      setClaims(claimsRes.data);
-      setStats(statsRes.data);
-      setDeficits(deficitsRes.data);
+      const { claims: allClaims, stats: managerStats, deficits: recruiterDeficits } = await fetchManagerDashboardData();
+      setClaims(allClaims);
+      setStats(managerStats);
+      setDeficits(recruiterDeficits);
     } catch (e) {
       setError(e?.response?.data?.message || "Failed to load manager dashboard");
     } finally {
@@ -45,7 +41,7 @@ const ManagerDashboard = () => {
     try {
       await api.patch(`/claims/${id}/decision`, { action });
       toast.success(`Claim ${action}ed`);
-      load();
+      await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || "Action failed");
     }

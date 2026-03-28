@@ -50,7 +50,7 @@ const checkDuplicateClaimRule = async ({ joinerBusinessId, incentiveType, now = 
     if (diffDays < 365) {
       return {
         blocked: true,
-        reason: "ANN already claimed for this Joiner within the last 12 months",
+        reason: "ANN already claimed within the last 12 months",
       };
     }
 

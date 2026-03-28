@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import api from "../services/api";
+import api, { fetchRecruiterDashboardData } from "../services/api";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -21,7 +21,7 @@ const schema = z.object({
   skill: z.string().min(2),
   portal: z.string().min(2),
   joinDate: z.string().min(1),
-  incentiveType: z.enum(["CTH", "FTH", "FTE", "ANN"]),
+  incentiveType: z.enum(["CTH", "FTE", "ANN"]),
 });
 
 const RecruiterDashboard = () => {
@@ -42,12 +42,9 @@ const RecruiterDashboard = () => {
     setLoading(true);
     setError("");
     try {
-      const [statsRes, joinersRes] = await Promise.all([
-        api.get("/dashboard/recruiter"),
-        api.get("/joiners/my"),
-      ]);
-      setStats(statsRes.data);
-      setRows(joinersRes.data);
+      const { stats: dashboardStats, joiners } = await fetchRecruiterDashboardData();
+      setStats(dashboardStats);
+      setRows(joiners);
     } catch (e) {
       setError(e?.response?.data?.message || "Failed to load recruiter dashboard");
     } finally {
@@ -65,7 +62,7 @@ const RecruiterDashboard = () => {
       await api.post("/joiners", values);
       toast.success("Joiner submitted");
       reset({ incentiveType: "CTH" });
-      loadData();
+      await loadData();
     } catch (e) {
       const message = e?.response?.data?.message || "Failed to submit joiner";
       setSubmitError(message);
@@ -79,7 +76,7 @@ const RecruiterDashboard = () => {
       await api.post(`/claims/${joinerId}`);
       toast.success("Claim submitted");
       setClaimErrors((prev) => ({ ...prev, [joinerId]: "" }));
-      loadData();
+      await loadData();
     } catch (e) {
       const message = e?.response?.data?.message || "Claim failed";
       setClaimErrors((prev) => ({ ...prev, [joinerId]: message }));
@@ -179,7 +176,6 @@ const RecruiterDashboard = () => {
               <Input type="date" {...register("joinDate")} />
               <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" {...register("incentiveType")}>
                 <option value="CTH">CTH</option>
-                <option value="FTH">FTH</option>
                 <option value="FTE">FTE</option>
                 <option value="ANN">ANN</option>
               </select>

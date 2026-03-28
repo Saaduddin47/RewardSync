@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import api from "../services/api";
+import api, { fetchAdminDashboardData } from "../services/api";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -44,16 +44,12 @@ const AdminDashboard = () => {
     setLoading(true);
     setError("");
     try {
-      const [employeesRes, recoveryRes, claimsRes] = await Promise.all([
-        api.get("/admin/employees"),
-        api.get("/admin/recovery"),
-        api.get("/claims"),
-      ]);
-      setEmployees(employeesRes.data);
-      setRecoveryRows(recoveryRes.data);
-      setClaims(claimsRes.data);
+      const { employees: employeesData, recoveryRows: recoveryData, claims: claimsData } = await fetchAdminDashboardData();
+      setEmployees(employeesData);
+      setRecoveryRows(recoveryData);
+      setClaims(claimsData);
       const initialDrafts = Object.fromEntries(
-        employeesRes.data.map((employee) => [
+        employeesData.map((employee) => [
           employee._id,
           {
             name: employee.name || "",
@@ -84,7 +80,7 @@ const AdminDashboard = () => {
       await api.post("/admin/employees", values);
       toast.success("Employee created");
       reset({ role: "recruiter", quarterlyTarget: 10, incentiveCTH: 0, incentiveANN: 0, password: "Pass@123" });
-      load();
+      await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || "Failed to create employee");
     }
@@ -98,7 +94,7 @@ const AdminDashboard = () => {
         deficit: Number(deficit),
       });
       toast.success("Deficit updated");
-      load();
+      await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || "Failed to update deficit");
     }
@@ -120,7 +116,7 @@ const AdminDashboard = () => {
         incentiveANN: Number(draft.incentiveANN || 0),
       });
       toast.success("Employee configuration updated");
-      load();
+      await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || "Failed to update employee");
     }
@@ -130,7 +126,7 @@ const AdminDashboard = () => {
     try {
       await api.patch(`/admin/employees/${employeeId}/toggle-active`);
       toast.success("Employee status updated");
-      load();
+      await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || "Failed to update employee status");
     }

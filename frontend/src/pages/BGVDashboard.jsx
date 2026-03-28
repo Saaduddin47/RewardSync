@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import api from "../services/api";
+import api, { fetchBgvDashboardData } from "../services/api";
 import DashboardLayout from "../layouts/DashboardLayout";
 import DataTable from "../components/DataTable";
 import { Card } from "../components/ui/card";
@@ -19,8 +19,7 @@ const BGVDashboard = () => {
     setLoading(true);
     setError("");
     try {
-      const endpoint = location.pathname.includes("all-joiners") ? "/joiners/bgv-all" : "/joiners/bgv-queue";
-      const { data } = await api.get(endpoint);
+      const data = await fetchBgvDashboardData({ showAll: location.pathname.includes("all-joiners") });
       setRows(data);
     } catch (e) {
       setError(e?.response?.data?.message || "Failed to load BGV queue");
@@ -37,7 +36,7 @@ const BGVDashboard = () => {
     try {
       await api.patch(`/joiners/${joinerId}/bgv`, { bgvStatus: status });
       toast.success(`Marked ${status}`);
-      load();
+      await load();
     } catch {
       toast.error("Failed to update BGV");
     }
