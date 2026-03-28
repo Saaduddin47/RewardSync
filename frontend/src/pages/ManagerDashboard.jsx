@@ -12,6 +12,7 @@ import StatCard from "../components/StatCard";
 const ManagerDashboard = () => {
   const location = useLocation();
   const [claims, setClaims] = useState([]);
+  const [deficits, setDeficits] = useState([]);
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0 });
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -21,9 +22,14 @@ const ManagerDashboard = () => {
     setLoading(true);
     setError("");
     try {
-      const [claimsRes, statsRes] = await Promise.all([api.get("/claims"), api.get("/dashboard/manager")]);
+      const [claimsRes, statsRes, deficitsRes] = await Promise.all([
+        api.get("/claims"),
+        api.get("/dashboard/manager"),
+        api.get("/dashboard/deficits"),
+      ]);
       setClaims(claimsRes.data);
       setStats(statsRes.data);
+      setDeficits(deficitsRes.data);
     } catch (e) {
       setError(e?.response?.data?.message || "Failed to load manager dashboard");
     } finally {
@@ -91,6 +97,32 @@ const ManagerDashboard = () => {
     []
   );
 
+  const deficitColumns = useMemo(
+    () => [
+      { accessorKey: "name", header: "Recruiter Name" },
+      { accessorKey: "empId", header: "Employee ID" },
+      {
+        header: "Current Deficit",
+        cell: ({ row }) => {
+          const value = Number(row.original.deficit || 0);
+          const toneClass = value >= 3
+            ? "text-red-600 font-semibold"
+            : value > 0
+              ? "text-amber-600 font-semibold"
+              : "text-emerald-600 font-semibold";
+          const badgeStatus = value >= 3 ? "rejected" : value > 0 ? "pending" : "approved";
+          return (
+            <div className="flex items-center gap-2">
+              <span className={toneClass}>{value}</span>
+              <Badge status={badgeStatus} />
+            </div>
+          );
+        },
+      },
+    ],
+    []
+  );
+
   const exportReport = async () => {
     try {
       const response = await api.get("/reports", { responseType: "blob" });
@@ -130,29 +162,43 @@ const ManagerDashboard = () => {
       </div>
 
       {(showDashboard || showClaims) && (
-        <Card className="mt-6">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h3 className="font-semibold">Incentive Claims</h3>
-            <div className="flex items-center gap-2">
-              <select className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
-              <Button onClick={exportReport}>Export Excel</Button>
-              <Button variant="outline" onClick={exportTrackerReport}>Download Tracker</Button>
+        <>
+          <Card className="mt-6">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-semibold">Incentive Claims</h3>
+              <div className="flex items-center gap-2">
+                <select className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                <Button onClick={exportReport}>Export Excel</Button>
+                <Button variant="outline" onClick={exportTrackerReport}>Download Tracker</Button>
+              </div>
             </div>
-          </div>
-          <DataTable
-            columns={columns}
-            data={filtered}
-            isLoading={loading}
-            error={error}
-            searchPlaceholder="Search claims..."
-            emptyMessage="No claims available"
-          />
-        </Card>
+            <DataTable
+              columns={columns}
+              data={filtered}
+              isLoading={loading}
+              error={error}
+              searchPlaceholder="Search claims..."
+              emptyMessage="No claims available"
+            />
+          </Card>
+
+          <Card className="mt-6">
+            <h3 className="mb-3 font-semibold">Recruiter Recovery Deficits</h3>
+            <DataTable
+              columns={deficitColumns}
+              data={deficits}
+              isLoading={loading}
+              error={error}
+              searchPlaceholder="Search recruiters..."
+              emptyMessage="No recruiter deficits found"
+            />
+          </Card>
+        </>
       )}
 
       {showQueue && (
