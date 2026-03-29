@@ -18,6 +18,7 @@ const recruiterStats = async (req, res) => {
   const approvedClaimsCount = await IncentiveClaim.countDocuments({
     recruiterId: req.user._id,
     status: "approved",
+    createdAt: { $gte: quarterStart, $lt: quarterEnd },
   });
 
   const quarterlyTarget = req.user.quarterlyTarget || 0;
@@ -26,6 +27,7 @@ const recruiterStats = async (req, res) => {
   return res.json({
     quarterlyTarget,
     joinersSubmitted: joinersCount,
+    approvedClaimsCount,
     currentDeficit,
   });
 };

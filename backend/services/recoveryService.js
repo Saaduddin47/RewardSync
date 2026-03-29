@@ -10,7 +10,16 @@ const getOrCreateRecovery = async (recruiterId) => {
   const quarter = getCurrentQuarter();
   let record = await Recovery.findOne({ recruiterId, quarter });
   if (!record) {
-    record = await Recovery.create({ recruiterId, quarter, deficit: 0 });
+    const previousRecord = await Recovery.findOne({
+      recruiterId,
+      quarter: { $lt: quarter },
+    }).sort({ quarter: -1 });
+
+    const carriedDeficit = previousRecord && previousRecord.deficit > 0
+      ? previousRecord.deficit
+      : 0;
+
+    record = await Recovery.create({ recruiterId, quarter, deficit: carriedDeficit });
   }
   return record;
 };

@@ -85,7 +85,7 @@ const RecruiterDashboard = () => {
   };
 
   const progress = stats?.quarterlyTarget
-    ? Math.min(100, Math.round(((stats.joinersSubmitted || 0) / stats.quarterlyTarget) * 100))
+    ? Math.min(100, Math.round(((stats.approvedClaimsCount || 0) / stats.quarterlyTarget) * 100))
     : 0;
   const section = location.pathname.split("/")[2] || "dashboard";
   const showDashboard = section === "dashboard";
