@@ -120,20 +120,26 @@ const RecruiterDashboard = () => {
       },
       {
         header: "Action",
-        cell: ({ row }) => (
-          <div className="space-y-1">
-            <Button
-              variant="outline"
-              disabled={row.original.claimStatus !== "not_claimed"}
-              onClick={() => claim(row.original._id)}
-            >
-              Claim
-            </Button>
-            {claimErrors[row.original._id] && (
-              <p className="max-w-xs text-xs text-red-500">{claimErrors[row.original._id]}</p>
-            )}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const canClaim = row.original.claimStatus === "not_claimed" && row.original.bgvStatus === "cleared";
+          const tooltipText = row.original.bgvStatus !== "cleared" ? "BGV must be cleared first" : "";
+
+          return (
+            <div className="space-y-1">
+              <Button
+                variant="outline"
+                disabled={!canClaim}
+                onClick={() => claim(row.original._id)}
+                title={tooltipText}
+              >
+                Claim
+              </Button>
+              {claimErrors[row.original._id] && (
+                <p className="max-w-xs text-xs text-red-500">{claimErrors[row.original._id]}</p>
+              )}
+            </div>
+          );
+        },
       },
     ],
     [claimErrors]

@@ -110,6 +110,20 @@ const updateBGV = async (req, res) => {
   );
 
   if (!record) return res.status(404).json({ message: "BGV record not found" });
+
+  // Auto-reject pending claims if BGV status is "failed"
+  if (bgvStatus === "failed") {
+    const pendingClaim = await IncentiveClaim.findOne({
+      joinerId: id,
+      status: "pending",
+    });
+    if (pendingClaim) {
+      pendingClaim.status = "rejected";
+      pendingClaim.managerNote = "BGV failed";
+      await pendingClaim.save();
+    }
+  }
+
   return res.json(record);
 };
 

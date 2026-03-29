@@ -99,14 +99,6 @@ const decideClaim = async (req, res) => {
     return res.json(claim);
   }
 
-  const bgv = await BGV.findOne({ joinerId: claim.joinerId._id });
-  if (!bgv || bgv.bgvStatus !== "cleared") {
-    claim.status = "rejected";
-    claim.managerNote = "BGV not cleared";
-    await claim.save();
-    return res.json(claim);
-  }
-
   const eligibility = await checkEligibility({ joiner: claim.joinerId });
   if (!eligibility.tenureEligible) {
     claim.status = "rejected";

@@ -87,16 +87,33 @@ const ManagerDashboard = () => {
       },
       {
         header: "Actions",
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <Button variant="outline" disabled={row.original.status !== "pending"} onClick={() => decide(row.original._id, "approve")}>
-              Approve
-            </Button>
-            <Button variant="danger" disabled={row.original.status !== "pending"} onClick={() => decide(row.original._id, "reject")}>
-              Reject
-            </Button>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const isPending = row.original.status === "pending";
+          const bgvCleared = row.original.bgvStatus === "cleared";
+          const isDisabled = !isPending || !bgvCleared;
+          const tooltipText = !bgvCleared ? "Waiting for BGV clearance" : "";
+
+          return (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                disabled={isDisabled}
+                onClick={() => decide(row.original._id, "approve")}
+                title={tooltipText}
+              >
+                Approve
+              </Button>
+              <Button
+                variant="danger"
+                disabled={isDisabled}
+                onClick={() => decide(row.original._id, "reject")}
+                title={tooltipText}
+              >
+                Reject
+              </Button>
+            </div>
+          );
+        },
       },
     ],
     []
