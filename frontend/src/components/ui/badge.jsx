@@ -6,7 +6,7 @@ const map = {
   rejected: "bg-red-100 text-red-700 border border-red-200",
   cleared: "bg-green-100 text-green-700 border border-green-200",
   failed: "bg-red-100 text-red-700 border border-red-200",
-  not_claimed: "bg-card text-foreground/80 border border-border",
+  not_claimed: "bg-gray-100 text-gray-600 border border-gray-200",
   not_eligible: "bg-gray-100 text-gray-600 border border-gray-200",
 };
 

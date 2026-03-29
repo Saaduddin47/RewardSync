@@ -107,6 +107,7 @@ const RecruiterDashboard = () => {
       { accessorKey: "client", header: "Client" },
       { accessorKey: "incentiveType", header: "Type" },
       { accessorKey: "bgvStatus", header: "BGV", cell: ({ row }) => <Badge status={row.original.bgvStatus} /> },
+      { accessorKey: "claimStatus", header: "Claim Status", cell: ({ row }) => <Badge status={row.original.claimStatus} /> },
       {
         header: "Comment",
         cell: ({ row }) => row.original.comment || "—",
