@@ -15,8 +15,9 @@ const incentiveClaimSchema = new mongoose.Schema(
     incentiveAmount: { type: Number, default: 0 },
     managerNote: {
       type: String,
+      alias: "comment",
       trim: true,
-      required: function requireReasonForRejections() {
+      required: function requireCommentForRejectedOrIneligibleClaims() {
         return ["rejected", "not_eligible"].includes(this.status);
       },
     },

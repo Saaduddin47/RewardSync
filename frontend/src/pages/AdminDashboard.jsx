@@ -376,6 +376,7 @@ const AdminDashboard = () => {
       { header: "Recruiter", cell: ({ row }) => row.original.recruiterId?.name || "-" },
       { accessorKey: "incentiveType", header: "Type" },
       { accessorKey: "status", header: "Status", cell: ({ row }) => <Badge status={row.original.status} /> },
+      { header: "Comment", cell: ({ row }) => row.original.comment || "—" },
     ],
     []
   );

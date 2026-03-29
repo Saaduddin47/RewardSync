@@ -40,10 +40,7 @@ const getMyJoiners = async (req, res) => {
         ...joiner.toObject(),
         bgvStatus: bgv?.bgvStatus || "pending",
         claimStatus: latestClaim?.status || "not_claimed",
-        rejectionReason:
-          latestClaim && ["rejected", "not_eligible"].includes(latestClaim.status)
-            ? (latestClaim.managerNote || "—")
-            : "—",
+        comment: latestClaim?.managerNote || "—",
       };
     })
   );

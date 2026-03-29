@@ -77,13 +77,8 @@ const ManagerDashboard = () => {
       },
       { accessorKey: "status", header: "Final Status", cell: ({ row }) => <Badge status={row.original.status} /> },
       {
-        header: "Rejection Reason",
-        cell: ({ row }) => {
-          if (["rejected", "not_eligible"].includes(row.original.status)) {
-            return row.original.managerNote || "—";
-          }
-          return "—";
-        },
+        header: "Comment",
+        cell: ({ row }) => row.original.comment || "—",
       },
       {
         header: "Actions",

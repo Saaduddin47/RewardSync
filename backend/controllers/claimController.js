@@ -6,6 +6,15 @@ const { checkDuplicateClaimRule } = require("../services/duplicateClaimService")
 const { checkEligibility, getTenureMonths } = require("../services/eligibilityService");
 const { applyRecoveryRule, getOrCreateRecovery } = require("../services/recoveryService");
 
+const toClaimResponse = (claimDoc) => {
+  const claim = claimDoc?.toObject ? claimDoc.toObject() : claimDoc;
+  const { managerNote, ...rest } = claim || {};
+  return {
+    ...rest,
+    comment: managerNote || "—",
+  };
+};
+
 const createClaim = async (req, res) => {
   const { joinerId } = req.params;
 
@@ -43,7 +52,7 @@ const createClaim = async (req, res) => {
   });
 
   return res.status(201).json({
-    ...claim.toObject(),
+    ...toClaimResponse(claim),
     eligibility,
   });
 };
@@ -70,7 +79,7 @@ const getClaims = async (req, res) => {
       const recovery = await getOrCreateRecovery(claim.recruiterId?._id);
 
       return {
-        ...claim.toObject(),
+        ...toClaimResponse(claim),
         bgvStatus: bgv?.bgvStatus || "pending",
         tenure,
         recoveryDeficit: recovery?.deficit || 0,
@@ -96,29 +105,24 @@ const decideClaim = async (req, res) => {
     claim.status = "rejected";
     claim.managerNote = managerNote || "Rejected by manager";
     await claim.save();
-    return res.json(claim);
+    return res.json(toClaimResponse(claim));
   }
 
   const eligibility = await checkEligibility({ joiner: claim.joinerId });
   if (!eligibility.tenureEligible) {
     claim.status = "rejected";
-    claim.managerNote = "Tenure not eligible";
+    claim.managerNote = "Joiner tenure not eligible yet";
     await claim.save();
-    return res.json(claim);
+    return res.json(toClaimResponse(claim));
   }
 
   const recoveryResult = await applyRecoveryRule(claim.recruiterId._id);
-  if (!recoveryResult.approved) {
-    claim.status = "rejected";
-    claim.managerNote = recoveryResult.reason;
-    await claim.save();
-    return res.json(claim);
-  }
-
   claim.status = "approved";
-  claim.managerNote = managerNote || "Approved by manager";
+  claim.managerNote = recoveryResult.approved
+    ? "Approved"
+    : "Approved — incentive withheld due to recovery deficit";
   await claim.save();
-  return res.json(claim);
+  return res.json(toClaimResponse(claim));
 };
 
 const decideClaimByBody = async (req, res) => {

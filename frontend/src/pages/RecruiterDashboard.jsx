@@ -107,16 +107,9 @@ const RecruiterDashboard = () => {
       { accessorKey: "client", header: "Client" },
       { accessorKey: "incentiveType", header: "Type" },
       { accessorKey: "bgvStatus", header: "BGV", cell: ({ row }) => <Badge status={row.original.bgvStatus} /> },
-      { accessorKey: "claimStatus", header: "Claim Status", cell: ({ row }) => <Badge status={row.original.claimStatus} /> },
       {
-        header: "Rejection Reason",
-        cell: ({ row }) => {
-          const status = row.original.claimStatus;
-          if (status === "rejected" || status === "not_eligible") {
-            return row.original.rejectionReason || "—";
-          }
-          return "—";
-        },
+        header: "Comment",
+        cell: ({ row }) => row.original.comment || "—",
       },
       {
         header: "Action",

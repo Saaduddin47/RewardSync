@@ -47,7 +47,7 @@ const exportReport = async (req, res) => {
     { header: "Team Member Name", key: "teamMemberName", width: 24 },
     { header: "Incentive Type", key: "incentiveType", width: 16 },
     { header: "Claim Status", key: "claimStatus", width: 16 },
-    { header: "Rejection Reason", key: "rejectionReason", width: 40 },
+    { header: "Comment", key: "comment", width: 48 },
     { header: "EMP ID", key: "empId", width: 12 },
     { header: "Joiner ID", key: "joinerId", width: 16 },
     { header: "EMPNA", key: "empna", width: 20 },
@@ -62,11 +62,16 @@ const exportReport = async (req, res) => {
 
   for (const claim of claims) {
     const bgv = await BGV.findOne({ joinerId: claim.joinerId?._id });
+    const incentiveStatus =
+      claim.status === "approved" && claim.managerNote !== "Approved — incentive withheld due to recovery deficit"
+        ? "approved"
+        : "rejected";
+
     sheet.addRow({
       teamMemberName: claim.recruiterId?.name || "",
       incentiveType: claim.incentiveType,
       claimStatus: claim.status,
-      rejectionReason: ["rejected", "not_eligible"].includes(claim.status) ? (claim.managerNote || "") : "",
+      comment: claim.managerNote || "",
       empId: claim.recruiterId?.empId || "",
       joinerId: claim.joinerId?.joinerId || "",
       empna: claim.joinerId?.joinerName || claim.joinerId?.name || "",
@@ -76,7 +81,7 @@ const exportReport = async (req, res) => {
       portal: claim.joinerId?.portal || "",
       bgv: bgv?.bgvStatus || "pending",
       monthPaid: claim.claimMonth || "",
-      incentiveAmount: claim.status === "approved" ? claim.incentiveAmount : "",
+      incentiveAmount: claim.status === "approved" && incentiveStatus === "approved" ? claim.incentiveAmount : "",
     });
   }
 
@@ -91,8 +96,7 @@ const exportIncentiveTracker = async (req, res) => {
     User.find({ role: "recruiter", isActive: true }).select("name empId quarterlyTarget").sort({ name: 1 }).lean(),
     Joiner.find({ joinDate: { $gte: TRACKER_START, $lte: TRACKER_END } }).select("recruiterId joinDate").lean(),
     IncentiveClaim.find({
-      status: "rejected",
-      managerNote: /Recovery deficit active/i,
+      managerNote: /(Recovery deficit active|incentive withheld due to recovery deficit)/i,
       createdAt: { $gte: TRACKER_START, $lte: TRACKER_END },
     })
       .select("recruiterId createdAt")
