@@ -52,9 +52,17 @@ const ManagerDashboard = () => {
   const showDashboard = section === "dashboard";
   const showClaims = section === "incentive-claims";
   const showQueue = section === "approval-queue";
-  const showRecoveryDeficits = section === "recovery-deficits";
   const showReports = section === "reports";
   const queueRows = claims.filter((claim) => claim.status === "pending");
+
+  useEffect(() => {
+    if (location.hash === "#recovery-deficits") {
+      const target = document.getElementById("recovery-deficits");
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }, [location.hash, loading]);
 
   const columns = useMemo(
     () => [
@@ -207,20 +215,6 @@ const ManagerDashboard = () => {
             />
           </Card>
         </>
-      )}
-
-      {showRecoveryDeficits && (
-        <Card id="recovery-deficits" className="mt-6">
-          <h3 className="mb-3 font-semibold">Recruiter Recovery Deficits</h3>
-          <DataTable
-            columns={deficitColumns}
-            data={deficits}
-            isLoading={loading}
-            error={error}
-            searchPlaceholder="Search recruiters..."
-            emptyMessage="No recruiter deficits found"
-          />
-        </Card>
       )}
 
       {showQueue && (

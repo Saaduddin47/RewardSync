@@ -41,7 +41,7 @@ const menuByRole = {
     { label: "Dashboard", to: "/manager", icon: Home },
     { label: "Incentive Claims", to: "/manager/incentive-claims", icon: FileCheck2 },
     { label: "Approval Queue", to: "/manager/approval-queue", icon: CheckCircle2 },
-    { label: "Recovery Deficits", to: "/manager/recovery-deficits", icon: RotateCcw },
+    { label: "Recovery Deficits", to: "/manager", hash: "#recovery-deficits", icon: RotateCcw },
     { label: "Reports", to: "/manager/reports", icon: FileDown },
   ],
   admin: [
@@ -88,11 +88,13 @@ const DashboardLayout = ({ children }) => {
           <nav className="space-y-2">
             {menu.map((item) => {
               const Icon = item.icon;
-              const active = location.pathname.startsWith(item.to);
+              const active = item.hash
+                ? location.pathname === item.to && location.hash === item.hash
+                : location.pathname.startsWith(item.to);
               return (
                 <Link
-                  key={item.to}
-                  to={item.to}
+                  key={`${item.to}${item.hash || ""}`}
+                  to={item.hash ? `${item.to}${item.hash}` : item.to}
                   onClick={() => setIsSidebarOpen(false)}
                   className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
                     active ? "bg-foreground text-background" : "text-foreground/80 hover:bg-background"
