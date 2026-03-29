@@ -52,6 +52,7 @@ const ManagerDashboard = () => {
   const showDashboard = section === "dashboard";
   const showClaims = section === "incentive-claims";
   const showQueue = section === "approval-queue";
+  const showRecoveryDeficits = section === "recovery-deficits";
   const showReports = section === "reports";
   const queueRows = claims.filter((claim) => claim.status === "pending");
 
@@ -122,18 +123,8 @@ const ManagerDashboard = () => {
         header: "Current Deficit",
         cell: ({ row }) => {
           const value = Number(row.original.deficit || 0);
-          const toneClass = value >= 3
-            ? "text-red-600 font-semibold"
-            : value > 0
-              ? "text-amber-600 font-semibold"
-              : "text-emerald-600 font-semibold";
-          const badgeStatus = value >= 3 ? "rejected" : value > 0 ? "pending" : "approved";
-          return (
-            <div className="flex items-center gap-2">
-              <span className={toneClass}>{value}</span>
-              <Badge status={badgeStatus} />
-            </div>
-          );
+          const toneClass = value > 0 ? "text-red-600 font-semibold" : "text-emerald-600 font-semibold";
+          return <span className={toneClass}>{value}</span>;
         },
       },
     ],
@@ -204,7 +195,7 @@ const ManagerDashboard = () => {
             />
           </Card>
 
-          <Card className="mt-6">
+          <Card id="recovery-deficits" className="mt-6">
             <h3 className="mb-3 font-semibold">Recruiter Recovery Deficits</h3>
             <DataTable
               columns={deficitColumns}
@@ -216,6 +207,20 @@ const ManagerDashboard = () => {
             />
           </Card>
         </>
+      )}
+
+      {showRecoveryDeficits && (
+        <Card id="recovery-deficits" className="mt-6">
+          <h3 className="mb-3 font-semibold">Recruiter Recovery Deficits</h3>
+          <DataTable
+            columns={deficitColumns}
+            data={deficits}
+            isLoading={loading}
+            error={error}
+            searchPlaceholder="Search recruiters..."
+            emptyMessage="No recruiter deficits found"
+          />
+        </Card>
       )}
 
       {showQueue && (

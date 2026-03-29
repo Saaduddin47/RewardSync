@@ -41,6 +41,7 @@ const menuByRole = {
     { label: "Dashboard", to: "/manager", icon: Home },
     { label: "Incentive Claims", to: "/manager/incentive-claims", icon: FileCheck2 },
     { label: "Approval Queue", to: "/manager/approval-queue", icon: CheckCircle2 },
+    { label: "Recovery Deficits", to: "/manager/recovery-deficits", icon: RotateCcw },
     { label: "Reports", to: "/manager/reports", icon: FileDown },
   ],
   admin: [
