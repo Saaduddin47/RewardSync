@@ -96,7 +96,7 @@ const ManagerDashboard = () => {
           return (
             <div className="flex gap-2">
               <Button
-                variant="outline"
+                variant="success"
                 disabled={isDisabled}
                 onClick={() => decide(row.original._id, "approve")}
                 title={tooltipText}

@@ -58,7 +58,7 @@ const BGVDashboard = () => {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => updateStatus(row.original.joinerObjectId, "cleared")}>Mark Cleared</Button>
+            <Button variant="success" onClick={() => updateStatus(row.original.joinerObjectId, "cleared")}>Mark Cleared</Button>
             <Button variant="danger" onClick={() => updateStatus(row.original.joinerObjectId, "failed")}>Mark Failed</Button>
           </div>
         ),
